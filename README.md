@@ -64,6 +64,13 @@ pixel-graphics-intro/
 
 ---
 
+## 👤 Author
+
+**Shalinda Chamod**
+* Facebook: [@shalinda.chamod.2025](https://web.facebook.com/shalinda.chamod.2025)
+* GitHub: [@shalindachamod](https://github.com/shalindachamod)
+* LinkedIn: [Shalinda Chamod](https://www.linkedin.com/in/shalinda-chamod-452a23385/)
+
 ## 📜 License
 
 This project is open-source under the [MIT License](LICENSE). Feel free to use, modify, and learn from it!
