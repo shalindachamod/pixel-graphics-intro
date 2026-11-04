@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PIXEL GRAPHICS — Iconic Lamp Jump Intro</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cinzel for monumental PIXEL serif, Montserrat & Inter for GRAPHICS & UI -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #06090e;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* Custom range slider for timeline scrubbing */
+    input[type="range"].timeline-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"].timeline-slider::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16);
+    }
+    input[type="range"].timeline-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fbbf24;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.85);
+      margin-top: -5px;
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+    input[type="range"].timeline-slider:hover::-webkit-slider-thumb {
+      transform: scale(1.2);
+      background: #fde047;
+    }
+    /* Subtle glassmorphism for studio HUD */
+    .studio-glass {
+      background: rgba(10, 15, 24, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55), 0 8px 25px -4px rgba(251, 191, 36, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0), 0 8px 30px -2px rgba(251, 191, 36, 0.65); }
+    }
+    .pulse-cta {
+      animation: pulseGlow 2.2s infinite;
+    }
+  </style>
+</head>
+<body class="relative w-screen h-screen flex flex-col justify-between overflow-hidden bg-[#06090e] text-slate-100">
+
+  <!-- Main Stage Canvas -->
+  <div id="canvasContainer" class="relative flex-1 w-full h-full overflow-hidden">
+    <canvas id="stageCanvas"></canvas>
+
+    <!-- Top-Left Studio Header & Phase Status Badge -->
+    <div class="fixed top-4 left-4 z-20 flex flex-wrap items-center gap-2.5 pointer-events-none">
+      <div class="studio-glass px-3.5 py-2 rounded-xl flex items-center gap-2.5 shadow-lg pointer-events-auto">
+        <span class="relative flex h-2.5 w-2.5">
+          <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+          <span id="statusDot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+        </span>
+        <span class="text-xs font-semibold tracking-wider uppercase text-slate-200">PIXEL GRAPHICS</span>
+        <span class="text-[11px] text-slate-400 font-mono border-l border-white/10 pl-2.5" id="phaseLabel">PHASE 1: HOP IN</span>
+      </div>
+
+      <!-- Quick Phase Jump Pills (Desktop) -->
+      <div class="hidden lg:flex items-center gap-1 studio-glass p-1 rounded-xl pointer-events-auto text-[11px] font-medium text-slate-300">
+        <button data-jump="0.0" class="phase-btn px-2.5 py-1 rounded-lg hover:bg-white/10 transition">1. Hop In</button>
+        <button data-jump="1.82" class="phase-btn px-2.5 py-1 rounded-lg hover:bg-white/10 transition">2. Inspect 'I'</button>
+        <button data-jump="2.82" class="phase-btn px-2.5 py-1 rounded-lg hover:bg-white/10 transition">3. Stomp 'I'</button>
+        <button data-jump="5.22" class="phase-btn px-2.5 py-1 rounded-lg hover:bg-white/10 transition">4. Camera Turn</button>
+        <button data-jump="7.45" class="phase-btn px-2.5 py-1 rounded-lg hover:bg-white/10 transition">5. Finale</button>
+      </div>
+    </div>
+
+    <!-- Top-Right Audio Autoplay Unlock Banner / Easter Egg Hint -->
+    <div class="fixed top-4 right-4 z-20 flex items-center gap-2">
+      <button id="audioUnlockBanner" class="hidden pulse-cta bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-semibold text-xs px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 hover:brightness-110 active:scale-95 transition cursor-pointer">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"/>
+        </svg>
+        <span>Click to Replay with Full Studio Audio</span>
+      </button>
+
+      <div id="interactiveHint" class="studio-glass px-3 py-2 rounded-xl text-[11px] text-slate-300 hidden sm:flex items-center gap-2 shadow-lg">
+        <span class="px-1.5 py-0.5 bg-white/10 rounded text-amber-300 font-mono text-[10px]">SPACE</span>
+        <span>Manual Jump</span>
+        <span class="text-white/20">•</span>
+        <span>Move mouse at end to aim lamp</span>
+      </div>
+    </div>
+
+    <!-- Bottom Studio Control Bar -->
+    <div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 w-[95%] max-w-4xl studio-glass rounded-2xl px-4 py-3 shadow-2xl flex flex-col gap-2.5">
+      <!-- Timeline Scrubber Row -->
+      <div class="flex items-center gap-3">
+        <span id="timeCurrent" class="text-[11px] font-mono text-amber-400 w-11 text-right">0.00s</span>
+        <div class="relative flex-1 flex items-center">
+          <input
+            id="timelineScrubber"
+            type="range"
+            min="0"
+            max="8.6"
+            step="0.01"
+            value="0"
+            aria-label="Animation Timeline Scrubber"
+            class="timeline-slider w-full z-10"
+          />
+          <!-- Progress fill bar -->
+          <div id="timelineFill" class="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 h-1.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-l-full" style="width: 0%;"></div>
+        </div>
+        <span id="timeTotal" class="text-[11px] font-mono text-slate-400 w-11">8.60s</span>
+      </div>
+
+      <!-- Buttons & Controls Row -->
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <!-- Left Controls: Replay with Sound & Play/Pause -->
+        <div class="flex items-center gap-2">
+          <button
+            id="replaySoundBtn"
+            class="bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:brightness-110 active:scale-95 text-slate-950 font-semibold text-xs px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+            </svg>
+            <span>Replay with Sound</span>
+          </button>
+
+          <button
+            id="playPauseBtn"
+            class="bg-white/10 hover:bg-white/15 active:scale-95 text-slate-100 text-xs font-medium px-3 py-2 rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+            title="Play / Pause"
+          >
+            <svg id="playPauseIcon" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            <span id="playPauseText">Pause</span>
+          </button>
+
+          <button
+            id="manualJumpBtn"
+            class="bg-white/10 hover:bg-white/15 active:scale-95 text-amber-300 text-xs font-medium px-3 py-2 rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+            title="Trigger an immediate spring jump (or press Spacebar)"
+          >
+            <span>⚡ Manual Jump</span>
+          </button>
+        </div>
+
+        <!-- Right Controls: Speed, Studio Lights, Audio Mute -->
+        <div class="flex items-center gap-2">
+          <!-- Speed Toggle -->
+          <div class="flex items-center bg-white/5 rounded-xl p-0.5 border border-white/10 text-[11px]">
+            <button data-speed="0.5" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition">0.5x</button>
+            <button data-speed="1" class="speed-btn px-2 py-1 rounded-lg bg-white/15 text-white font-semibold transition">1x</button>
+            <button data-speed="1.5" class="speed-btn px-2 py-1 rounded-lg text-slate-400 hover:text-white transition">1.5x</button>
+          </div>
+
+          <!-- Keep Studio Lights On Toggle -->
+          <button
+            id="keepLightsBtn"
+            class="bg-white/10 hover:bg-white/15 text-slate-300 text-xs px-2.5 py-2 rounded-xl flex items-center gap-1.5 transition cursor-pointer"
+            title="Toggle Finale Dim-Out vs Full Studio Lighting"
+          >
+            <span id="keepLightsLabel" class="text-[11px]">🎬 Classic Dim Finale</span>
+          </button>
+
+          <!-- Mute / Unmute Toggle -->
+          <button
+            id="muteBtn"
+            class="bg-white/10 hover:bg-white/15 text-slate-200 p-2 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+            title="Mute / Unmute Synthesized Studio Audio"
+          >
+            <svg id="iconUnmuted" class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clip-rule="evenodd" />
+            </svg>
+            <svg id="iconMuted" class="w-4 h-4 text-rose-400 hidden" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /********************************************************************
+     * 1. PROCEDURAL WEB AUDIO API SOUND ENGINE (ZERO EXTERNAL ASSETS)
+     ********************************************************************/
+    class LuxoSoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.isUnlocked = false;
+        this.masterGain = null;
+        this.humOsc = null;
+        this.humGain = null;
+      }
+
+      /**
+       * Initializes or resumes the AudioContext.
+       * Returns true if audio is actively running.
+       */
+      initAndUnlock() {
+        try {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.ctx = new AudioCtx();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.value = this.isMuted ? 0 : 0.85;
+            this.masterGain.connect(this.ctx.destination);
+            this.startBulbHum();
+          }
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+          this.isUnlocked = this.ctx.state === 'running';
+          return this.isUnlocked;
+        } catch (err) {
+          console.warn('Web Audio API initialization warning:', err);
+          return false;
+        }
+      }
+
+      setMuted(muted) {
+        this.isMuted = muted;
+        if (this.masterGain && this.ctx) {
+          this.masterGain.gain.setTargetAtTime(muted ? 0 : 0.85, this.ctx.currentTime, 0.03);
+        }
+      }
+
+      /**
+       * Subtle continuous 60Hz incandescent filament hum that swells when the bulb faces the camera
+       */
+      startBulbHum() {
+        if (!this.ctx || this.humOsc) return;
+        try {
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const filter = this.ctx.createBiquadFilter();
+          this.humGain = this.ctx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc1.frequency.value = 60; // 60Hz AC mains hum
+          osc2.type = 'sine';
+          osc2.frequency.value = 120; // 2nd harmonic
+
+          filter.type = 'lowpass';
+          filter.frequency.value = 210;
+
+          this.humGain.gain.value = 0.001;
+
+          osc1.connect(filter);
+          osc2.connect(filter);
+          filter.connect(this.humGain);
+          this.humGain.connect(this.masterGain);
+
+          osc1.start();
+          osc2.start();
+          this.humOsc = osc1;
+        } catch (e) {
+          // Ignore if blocked before gesture
+        }
+      }
+
+      updateBulbHumLevel(level) {
+        if (!this.ctx || !this.humGain || this.ctx.state !== 'running') return;
+        const target = Math.max(0.0001, Math.min(0.055, level * 0.04));
+        this.humGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.08);
+      }
+
+      /**
+       * Synthesizes the iconic metallic tension-spring squeak when jumping/coiling
+       */
+      playSpringJump(pitchScale = 1.0, duration = 0.22) {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        // Carrier + FM Modulator for metallic coil squeak
+        const carrier = this.ctx.createOscillator();
+        const mod = this.ctx.createOscillator();
+        const modGain = this.ctx.createGain();
+        const bandpass = this.ctx.createBiquadFilter();
+        const env = this.ctx.createGain();
+
+        carrier.type = 'triangle';
+        mod.type = 'sine';
+
+        const baseFreq = 980 * pitchScale;
+        carrier.frequency.setValueAtTime(baseFreq * 0.72, now);
+        carrier.frequency.exponentialRampToValueAtTime(baseFreq * 1.65, now + duration * 0.65);
+        carrier.frequency.exponentialRampToValueAtTime(baseFreq * 1.15, now + duration);
+
+        mod.frequency.setValueAtTime(52, now);
+        mod.frequency.linearRampToValueAtTime(110, now + duration);
+        modGain.gain.setValueAtTime(320, now);
+
+        bandpass.type = 'bandpass';
+        bandpass.frequency.setValueAtTime(1750 * pitchScale, now);
+        bandpass.Q.value = 4.5;
+
+        env.gain.setValueAtTime(0.001, now);
+        env.gain.linearRampToValueAtTime(0.24, now + 0.025);
+        env.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        mod.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.connect(bandpass);
+        bandpass.connect(env);
+        env.connect(this.masterGain);
+
+        carrier.start(now);
+        mod.start(now);
+        carrier.stop(now + duration + 0.02);
+        mod.stop(now + duration + 0.02);
+      }
+
+      /**
+       * Synthesizes the weighted rubbery lamp base landing on the studio floor
+       */
+      playFloorLand(intensity = 1.0) {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        // 1. Low weighted floor thud
+        const osc = this.ctx.createOscillator();
+        const thudGain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(135 * (0.85 + 0.2 * intensity), now);
+        osc.frequency.exponentialRampToValueAtTime(34, now + 0.13);
+
+        thudGain.gain.setValueAtTime(0.42 * intensity, now);
+        thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+        osc.connect(thudGain);
+        thudGain.connect(this.masterGain);
+        osc.start(now);
+        osc.stop(now + 0.15);
+
+        // 2. Short spring recoil rattle on landing
+        const springOsc = this.ctx.createOscillator();
+        const springGain = this.ctx.createGain();
+        springOsc.type = 'sawtooth';
+        springOsc.frequency.setValueAtTime(1250, now + 0.01);
+        springOsc.frequency.exponentialRampToValueAtTime(680, now + 0.09);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1100;
+        filter.Q.value = 5.0;
+
+        springGain.gain.setValueAtTime(0.001, now);
+        springGain.gain.linearRampToValueAtTime(0.09 * intensity, now + 0.02);
+        springGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+        springOsc.connect(filter);
+        filter.connect(springGain);
+        springGain.connect(this.masterGain);
+        springOsc.start(now);
+        springOsc.stop(now + 0.11);
+      }
+
+      /**
+       * Synthesizes delicate mechanical spring-arm creaks during head tilts & inspection
+       */
+      playServoCreak(pitch = 1.0, duration = 0.32) {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        const steps = 7;
+        for (let i = 0; i < steps; i++) {
+          const t = now + (i / steps) * duration * 0.85;
+          const grainOsc = this.ctx.createOscillator();
+          const grainGain = this.ctx.createGain();
+          const bp = this.ctx.createBiquadFilter();
+
+          grainOsc.type = 'triangle';
+          const f = (780 + i * 55 * (pitch > 1 ? 1 : -0.6)) * pitch;
+          grainOsc.frequency.setValueAtTime(Math.max(300, f), t);
+          grainOsc.frequency.exponentialRampToValueAtTime(Math.max(300, f * 1.18), t + 0.035);
+
+          bp.type = 'bandpass';
+          bp.frequency.value = 1400 * pitch;
+          bp.Q.value = 6;
+
+          grainGain.gain.setValueAtTime(0.001, t);
+          grainGain.gain.linearRampToValueAtTime(0.075, t + 0.01);
+          grainGain.gain.exponentialRampToValueAtTime(0.001, t + 0.042);
+
+          grainOsc.connect(bp);
+          bp.connect(grainGain);
+          grainGain.connect(this.masterGain);
+
+          grainOsc.start(t);
+          grainOsc.stop(t + 0.045);
+        }
+      }
+
+      /**
+       * Synthesizes the punchy elastic squash-and-boing as the lamp bounces on top of the letter 'I'
+       */
+      playLetterBounceSquish(bounceNumber = 1) {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        // Progressive pitch compression across bounces 1, 2, 3
+        const pitchFactor = 1.0 + (bounceNumber - 1) * 0.18;
+
+        // 1. Punchy stomp thud
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'sine';
+        sub.frequency.setValueAtTime(165 * pitchFactor, now);
+        sub.frequency.exponentialRampToValueAtTime(42, now + 0.14);
+
+        subGain.gain.setValueAtTime(0.48, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        sub.connect(subGain);
+        subGain.connect(this.masterGain);
+        sub.start(now);
+        sub.stop(now + 0.16);
+
+        // 2. Elastic cartoon rubbery squish + upward recoil boing
+        const boing = this.ctx.createOscillator();
+        const boingFilter = this.ctx.createBiquadFilter();
+        const boingGain = this.ctx.createGain();
+
+        boing.type = 'sawtooth';
+        const startF = 240 * pitchFactor;
+        boing.frequency.setValueAtTime(startF, now);
+        // Squash down in pitch, then elastic recoil upward
+        boing.frequency.exponentialRampToValueAtTime(startF * 0.58, now + 0.065);
+        boing.frequency.exponentialRampToValueAtTime(startF * 1.95, now + 0.21);
+        boing.frequency.exponentialRampToValueAtTime(startF * 1.35, now + 0.29);
+
+        boingFilter.type = 'lowpass';
+        boingFilter.frequency.setValueAtTime(650, now);
+        boingFilter.frequency.exponentialRampToValueAtTime(2400, now + 0.18);
+        boingFilter.Q.value = 6.5;
+
+        boingGain.gain.setValueAtTime(0.001, now);
+        boingGain.gain.linearRampToValueAtTime(0.26, now + 0.025);
+        boingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.30);
+
+        boing.connect(boingFilter);
+        boingFilter.connect(boingGain);
+        boingGain.connect(this.masterGain);
+
+        boing.start(now);
+        boing.stop(now + 0.31);
+
+        // 3. Accompanying metallic spring squeak
+        this.playSpringJump(1.05 + bounceNumber * 0.12, 0.19);
+      }
+
+      /**
+       * Synthesizes the final heavy 4th stomp that completely flattens the 'I' into the floor
+       */
+      playFinalFlattenSplat() {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        // 1. Heavy impact slam
+        const slam = this.ctx.createOscillator();
+        const slamGain = this.ctx.createGain();
+        slam.type = 'triangle';
+        slam.frequency.setValueAtTime(190, now);
+        slam.frequency.exponentialRampToValueAtTime(28, now + 0.26);
+
+        slamGain.gain.setValueAtTime(0.65, now);
+        slamGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+        slam.connect(slamGain);
+        slamGain.connect(this.masterGain);
+        slam.start(now);
+        slam.stop(now + 0.29);
+
+        // 2. Comical pancake squish-out (filtered noise + pitch bend)
+        const bufferSize = this.ctx.sampleRate * 0.25;
+        const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = Math.random() * 2 - 1;
+        }
+        const whiteNoise = this.ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(900, now);
+        filter.frequency.exponentialRampToValueAtTime(220, now + 0.22);
+        filter.Q.value = 3.5;
+
+        const noiseGain = this.ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.35, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+        whiteNoise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(this.masterGain);
+        whiteNoise.start(now);
+
+        // 3. Descending elastic deflating whistle
+        const squish = this.ctx.createOscillator();
+        const squishGain = this.ctx.createGain();
+        squish.type = 'sine';
+        squish.frequency.setValueAtTime(520, now + 0.02);
+        squish.frequency.exponentialRampToValueAtTime(75, now + 0.24);
+
+        squishGain.gain.setValueAtTime(0.28, now + 0.02);
+        squishGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        squish.connect(squishGain);
+        squishGain.connect(this.masterGain);
+        squish.start(now + 0.02);
+        squish.stop(now + 0.26);
+      }
+
+      /**
+       * Warm cinematic shimmer chord when "GRAPHICS" fades in and lamp turns to camera
+       */
+      playSubtitleShimmer() {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        // Warm Fmaj9 / Cmaj9 studio pad frequencies
+        const freqs = [261.63, 329.63, 392.00, 493.88, 587.33];
+        freqs.forEach((f, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const filter = this.ctx.createBiquadFilter();
+
+          osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(f, now);
+
+          filter.type = 'lowpass';
+          filter.frequency.value = 1400;
+
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.linearRampToValueAtTime(0.032 / (idx * 0.35 + 1), now + 0.55);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.3);
+
+          osc.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterGain);
+
+          osc.start(now);
+          osc.stop(now + 2.35);
+        });
+      }
+
+      /**
+       * Crisp mechanical switch click at the end of Phase 5
+       */
+      playFinaleClick() {
+        if (!this.initAndUnlock() || this.isMuted) return;
+        const now = this.ctx.currentTime;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1800, now);
+        osc.frequency.exponentialRampToValueAtTime(320, now + 0.028);
+
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(now);
+        osc.stop(now + 0.035);
+      }
+    }
+
+    const sound = new LuxoSoundEngine();
+
+    /********************************************************************
+     * 2. MATH, EASING & KEYFRAME INTERPOLATION UTILITIES
+     ********************************************************************/
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    const Easing = {
+      linear: t => t,
+      easeInQuad: t => t * t,
+      easeOutQuad: t => t * (2 - t),
+      easeInOutQuad: t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+      easeInCubic: t => t * t * t,
+      easeOutCubic: t => (--t) * t * t + 1,
+      easeInOutCubic: t =>
+        t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+      easeOutBack: t => {
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+      }
+    };
+
+    /**
+     * Interpolates a numeric property across sorted keyframes:
+     * Each keyframe: { t, v, ease }
+     */
+    function sampleTrack(keyframes, time) {
+      if (time <= keyframes[0].t) return keyframes[0].v;
+      const last = keyframes[keyframes.length - 1];
+      if (time >= last.t) return last.v;
+
+      for (let i = 0; i < keyframes.length - 1; i++) {
+        const k0 = keyframes[i];
+        const k1 = keyframes[i + 1];
+        if (time >= k0.t && time <= k1.t) {
+          const span = k1.t - k0.t;
+          if (span <= 0.00001) return k1.v;
+          const rawT = (time - k0.t) / span;
+          const easeFn = k1.ease || Easing.easeInOutQuad;
+          return lerp(k0.v, k1.v, easeFn(rawT));
+        }
+      }
+      return last.v;
+    }
+
+    /********************************************************************
+     * 3. CHOREOGRAPHY TRACKS (8.60 SECONDS MASTER TIMELINE)
+     * Virtual Studio Coordinate Space: 1600 x 900, Floor Y = 635
+     ********************************************************************/
+    const STUDIO_W = 1600;
+    const STUDIO_H = 900;
+    const FLOOR_Y = 635;
+    const LETTER_H = 184;
+
+    // Monumental "P I X E L" positions
+    const LETTERS = [
+      { char: 'P', x: 370 },
+      { char: 'I', x: 585, isTarget: true },
+      { char: 'X', x: 800 },
+      { char: 'E', x: 1015 },
+      { char: 'L', x: 1230 }
+    ];
+    const TARGET_I_X = 585;
+
+    // Master Keyframe Tracks for the Articulated Lamp & Scene
+    const TRACKS = {
+      // X-coordinate of the center of the lamp's circular base
+      x: [
+        { t: 0.00, v: 1690 },
+        { t: 0.38, v: 1645, ease: Easing.easeOutQuad }, // Peek & coil
+        { t: 0.78, v: 1350, ease: Easing.linear },      // Hop 1 air
+        { t: 0.88, v: 1350 },                           // Land 1 settle
+        { t: 1.24, v: 1045, ease: Easing.linear },      // Hop 2 air
+        { t: 1.35, v: 1045 },                           // Land 2 settle
+        { t: 1.72, v: 748,  ease: Easing.linear },      // Hop 3 air (stops next to 'I')
+        { t: 2.82, v: 748 },                            // Inspect 'I' & crouch
+        { t: 3.34, v: TARGET_I_X, ease: Easing.easeOutQuad }, // Big leap onto top of 'I'
+        { t: 8.60, v: TARGET_I_X }                      // Remains in 'I's spot
+      ],
+
+      // Y-coordinate of the bottom of the lamp's base (635 = floor)
+      y: [
+        { t: 0.00, v: FLOOR_Y },
+        { t: 0.38, v: FLOOR_Y },
+        // Hop 1
+        { t: 0.58, v: FLOOR_Y - 115, ease: Easing.easeOutQuad },
+        { t: 0.78, v: FLOOR_Y,       ease: Easing.easeInQuad },
+        { t: 0.88, v: FLOOR_Y },
+        // Hop 2
+        { t: 1.06, v: FLOOR_Y - 128, ease: Easing.easeOutQuad },
+        { t: 1.24, v: FLOOR_Y,       ease: Easing.easeInQuad },
+        { t: 1.35, v: FLOOR_Y },
+        // Hop 3
+        { t: 1.53, v: FLOOR_Y - 118, ease: Easing.easeOutQuad },
+        { t: 1.72, v: FLOOR_Y,       ease: Easing.easeInQuad },
+        { t: 2.82, v: FLOOR_Y },
+
+        // Phase 3: High leap onto the top of 'I' (Top of 'I' starts at FLOOR_Y - LETTER_H = 451)
+        { t: 3.10, v: FLOOR_Y - 335, ease: Easing.easeOutQuad },
+        { t: 3.34, v: FLOOR_Y - LETTER_H, ease: Easing.easeInQuad }, // Impact 1 on top of 'I'
+        { t: 3.45, v: FLOOR_Y - LETTER_H * 0.58, ease: Easing.easeOutQuad }, // Squashes 'I' down
+        { t: 3.55, v: FLOOR_Y - LETTER_H * 0.76, ease: Easing.easeInQuad },  // Recoil launch 2
+
+        // Bounce 2 on 'I'
+        { t: 3.76, v: FLOOR_Y - 305, ease: Easing.easeOutQuad },
+        { t: 3.96, v: FLOOR_Y - LETTER_H * 0.76, ease: Easing.easeInQuad }, // Impact 2
+        { t: 4.06, v: FLOOR_Y - LETTER_H * 0.35, ease: Easing.easeOutQuad }, // Squashes 'I' deeper
+        { t: 4.15, v: FLOOR_Y - LETTER_H * 0.50, ease: Easing.easeInQuad },  // Recoil launch 3
+
+        // Bounce 3 on 'I'
+        { t: 4.33, v: FLOOR_Y - 265, ease: Easing.easeOutQuad },
+        { t: 4.50, v: FLOOR_Y - LETTER_H * 0.50, ease: Easing.easeInQuad }, // Impact 3
+        { t: 4.60, v: FLOOR_Y - LETTER_H * 0.16, ease: Easing.easeOutQuad }, // Squashes 'I' nearly flat
+        { t: 4.68, v: FLOOR_Y - LETTER_H * 0.25, ease: Easing.easeInQuad },  // Recoil launch 4
+
+        // Bounce 4 (Final fierce stomp that flattens 'I' into the floor)
+        { t: 4.84, v: FLOOR_Y - 220, ease: Easing.easeOutQuad },
+        { t: 5.02, v: FLOOR_Y - LETTER_H * 0.25, ease: Easing.easeInQuad }, // Impact 4
+        { t: 5.14, v: FLOOR_Y, ease: Easing.easeOutQuad },                  // Flattens all the way to floor!
+        { t: 8.60, v: FLOOR_Y }
+      ],
+
+      // Scale height of the letter 'I' (1.0 = full height, 0.0 = completely flattened)
+      iScaleY: [
+        { t: 0.00, v: 1.00 },
+        { t: 3.34, v: 1.00 },
+        // Bounce 1 squash & elastic recoil
+        { t: 3.45, v: 0.58, ease: Easing.easeOutQuad },
+        { t: 3.58, v: 0.78, ease: Easing.easeOutBack },
+        { t: 3.96, v: 0.76, ease: Easing.easeInOutQuad },
+        // Bounce 2 squash & elastic recoil
+        { t: 4.06, v: 0.35, ease: Easing.easeOutQuad },
+        { t: 4.18, v: 0.51, ease: Easing.easeOutBack },
+        { t: 4.50, v: 0.50, ease: Easing.easeInOutQuad },
+        // Bounce 3 squash & elastic recoil
+        { t: 4.60, v: 0.16, ease: Easing.easeOutQuad },
+        { t: 4.70, v: 0.25, ease: Easing.easeOutBack },
+        { t: 5.02, v: 0.25, ease: Easing.easeInOutQuad },
+        // Bounce 4 final flatten into oblivion
+        { t: 5.14, v: 0.00, ease: Easing.easeOutQuad },
+        { t: 8.60, v: 0.00 }
+      ],
+
+      // Base tilt angle in radians (positive = nose tilted up, negative = nose tilted down)
+      baseTilt: [
+        { t: 0.00, v: 0.0 },
+        { t: 0.38, v: 0.0 },
+        { t: 0.48, v: 0.22, ease: Easing.easeOutQuad },
+        { t: 0.74, v: -0.16, ease: Easing.easeInOutQuad },
+        { t: 0.84, v: 0.0, ease: Easing.easeOutQuad },
+
+        { t: 0.96, v: 0.24, ease: Easing.easeOutQuad },
+        { t: 1.20, v: -0.18, ease: Easing.easeInOutQuad },
+        { t: 1.30, v: 0.0, ease: Easing.easeOutQuad },
+
+        { t: 1.44, v: 0.22, ease: Easing.easeOutQuad },
+        { t: 1.68, v: -0.15, ease: Easing.easeInOutQuad },
+        { t: 1.78, v: 0.0, ease: Easing.easeOutQuad },
+
+        // Pre-jump wiggle shimmy on the floor
+        { t: 2.40, v: 0.0 },
+        { t: 2.50, v: -0.05 },
+        { t: 2.60, v: 0.05 },
+        { t: 2.70, v: -0.04 },
+        { t: 2.82, v: 0.0 },
+
+        // Big leap onto 'I'
+        { t: 2.95, v: 0.30, ease: Easing.easeOutQuad },
+        { t: 3.28, v: -0.20, ease: Easing.easeInOutQuad },
+        { t: 3.38, v: 0.0, ease: Easing.easeOutQuad },
+
+        // Bounces on 'I'
+        { t: 3.65, v: 0.14 },
+        { t: 3.92, v: -0.12 },
+        { t: 4.00, v: 0.0 },
+        { t: 4.25, v: 0.12 },
+        { t: 4.46, v: -0.12 },
+        { t: 4.54, v: 0.0 },
+        { t: 4.78, v: 0.15 },
+        { t: 4.98, v: -0.15 },
+        { t: 5.08, v: 0.0 },
+        { t: 8.60, v: 0.0 }
+      ],
+
+      // Body extension / crouch factor (0.25 = deeply crouched/coiled, 1.0 = neutral, 1.35 = stretched mid-air)
+      crouch: [
+        { t: 0.00, v: 0.90 },
+        { t: 0.38, v: 0.45, ease: Easing.easeInOutQuad }, // Coil 1
+        { t: 0.58, v: 1.24, ease: Easing.easeOutQuad },   // Stretch 1
+        { t: 0.78, v: 0.75, ease: Easing.easeInQuad },
+        { t: 0.88, v: 0.42, ease: Easing.easeOutQuad },   // Squash & coil 2
+        { t: 1.06, v: 1.28, ease: Easing.easeOutQuad },   // Stretch 2
+        { t: 1.24, v: 0.75, ease: Easing.easeInQuad },
+        { t: 1.35, v: 0.44, ease: Easing.easeOutQuad },   // Squash & coil 3
+        { t: 1.53, v: 1.25, ease: Easing.easeOutQuad },   // Stretch 3
+        { t: 1.72, v: 0.72, ease: Easing.easeInQuad },
+        { t: 1.84, v: 0.52, ease: Easing.easeOutQuad },   // Landing settle
+        { t: 2.05, v: 1.04, ease: Easing.easeOutBack },   // Stand tall to inspect 'I'
+        { t: 2.32, v: 1.08, ease: Easing.easeInOutQuad },
+
+        // Deep anticipation crouch before leaping onto 'I'
+        { t: 2.58, v: 0.32, ease: Easing.easeInOutQuad },
+        { t: 2.82, v: 0.26, ease: Easing.easeInQuad },
+
+        // Big leap launch stretch
+        { t: 3.06, v: 1.38, ease: Easing.easeOutQuad },
+        { t: 3.34, v: 0.85, ease: Easing.easeInQuad },
+        // Bounce 1 compress & launch
+        { t: 3.45, v: 0.38, ease: Easing.easeOutQuad },
+        { t: 3.74, v: 1.32, ease: Easing.easeOutQuad },
+        { t: 3.96, v: 0.82, ease: Easing.easeInQuad },
+        // Bounce 2 compress & launch
+        { t: 4.06, v: 0.35, ease: Easing.easeOutQuad },
+        { t: 4.32, v: 1.28, ease: Easing.easeOutQuad },
+        { t: 4.50, v: 0.80, ease: Easing.easeInQuad },
+        // Bounce 3 compress & launch
+        { t: 4.60, v: 0.34, ease: Easing.easeOutQuad },
+        { t: 4.82, v: 1.25, ease: Easing.easeOutQuad },
+        { t: 5.02, v: 0.78, ease: Easing.easeInQuad },
+        // Bounce 4 heavy stomp & recovery
+        { t: 5.14, v: 0.28, ease: Easing.easeOutQuad },
+        { t: 5.55, v: 0.96, ease: Easing.easeOutBack },
+        // Sheepish look & proud stand as 'I' replacement
+        { t: 6.00, v: 0.86, ease: Easing.easeInOutQuad },
+        { t: 6.65, v: 0.98, ease: Easing.easeOutBack },
+        { t: 8.60, v: 0.98 }
+      ],
+
+      // Forward/backward lean of the lamp's posture (-1 = leaning left toward 'I', +1 = leaning back right)
+      lean: [
+        { t: 0.00, v: -0.25 },
+        { t: 0.38, v: -0.45 },
+        { t: 0.58, v: -0.15 },
+        { t: 0.88, v: -0.50 },
+        { t: 1.06, v: -0.15 },
+        { t: 1.35, v: -0.48 },
+        { t: 1.53, v: -0.15 },
+        { t: 1.84, v: -0.35 },
+        // Crane neck back to inspect the tall 'I'
+        { t: 2.12, v: 0.42, ease: Easing.easeInOutQuad },
+        { t: 2.35, v: 0.35, ease: Easing.easeInOutQuad },
+        // Coil forward to leap onto 'I'
+        { t: 2.65, v: -0.35, ease: Easing.easeInOutQuad },
+        { t: 2.82, v: -0.45, ease: Easing.easeInQuad },
+        { t: 3.10, v: -0.10, ease: Easing.easeOutQuad },
+        { t: 3.34, v: 0.0,  ease: Easing.easeInOutQuad },
+        // Upright during bounces on 'I'
+        { t: 5.20, v: 0.0 },
+        // Slight sheepish lean left & right in Phase 4
+        { t: 5.75, v: -0.18, ease: Easing.easeInOutQuad },
+        { t: 6.10, v: 0.16,  ease: Easing.easeInOutQuad },
+        { t: 6.55, v: 0.0,   ease: Easing.easeInOutQuad },
+        { t: 8.60, v: 0.0 }
+      ],
+
+      // Head pitch angle in radians (0 = level horizontal left, negative = tilted down toward floor, positive = tilted up)
+      headPitch: [
+        { t: 0.00, v: -0.25 },
+        { t: 0.38, v: -0.45 },
+        { t: 0.62, v: 0.12 },  // Trailing overlap in air
+        { t: 0.88, v: -0.48 },
+        { t: 1.10, v: 0.15 },
+        { t: 1.35, v: -0.48 },
+        { t: 1.56, v: 0.15 },
+        { t: 1.85, v: -0.52 }, // Looks at base of 'I'
+        // Phase 2: Scans up the letter 'I' curiously!
+        { t: 2.15, v: 0.38, ease: Easing.easeInOutQuad },
+        { t: 2.38, v: 0.25, ease: Easing.easeInOutQuad },
+        // Aims at top of 'I' while crouching
+        { t: 2.65, v: 0.48, ease: Easing.easeInOutQuad },
+        { t: 2.82, v: 0.55 },
+        // Mid-air flip to look down at 'I' target
+        { t: 3.15, v: -0.75, ease: Easing.easeInOutQuad },
+        // Looking straight down at the 'I' while bouncing on it
+        { t: 3.45, v: -0.95 },
+        { t: 5.15, v: -1.05 },
+        // Phase 4: Looks down at flattened spot, then lifts head up
+        { t: 5.55, v: -0.85, ease: Easing.easeInOutQuad },
+        { t: 5.95, v: -0.35, ease: Easing.easeInOutQuad },
+        { t: 6.45, v: -0.08, ease: Easing.easeInOutQuad },
+        // Cute subtle nod while facing camera
+        { t: 6.95, v: -0.20, ease: Easing.easeInOutQuad },
+        { t: 7.25, v: -0.06, ease: Easing.easeOutBack },
+        { t: 8.60, v: -0.06 }
+      ],
+
+      // Head Yaw: -1.0 = facing left toward 'I', +1.0 = facing right, 0.0 = facing directly at viewer/camera!
+      headYaw: [
+        { t: 0.00, v: -1.0 },
+        { t: 5.55, v: -1.0 },
+        // Looks slightly left toward 'P' then right toward 'X' sheepishly
+        { t: 5.82, v: -0.75, ease: Easing.easeInOutQuad },
+        { t: 6.15, v: 0.55,  ease: Easing.easeInOutQuad },
+        // Smoothly rotates head directly toward the camera lens!
+        { t: 6.68, v: 0.0,   ease: Easing.easeOutBack },
+        { t: 8.60, v: 0.0 }
+      ],
+
+      // Studio Cyclorama Overhead Illumination (0 = pitch black, 1 = full classic blue-grey studio backdrop)
+      studioLight: [
+        { t: 0.00, v: 0.05 },
+        { t: 0.50, v: 1.00, ease: Easing.easeOutCubic },
+        { t: 7.45, v: 1.00 },
+        { t: 8.25, v: 0.00, ease: Easing.easeInOutCubic },
+        { t: 8.60, v: 0.00 }
+      ],
+
+      // "G R A P H I C S" subtitle opacity
+      subtitleAlpha: [
+        { t: 0.00, v: 0.0 },
+        { t: 5.50, v: 0.0 },
+        { t: 6.65, v: 1.0, ease: Easing.easeInOutCubic },
+        { t: 8.60, v: 1.0 }
+      ]
+    };
+
+    /********************************************************************
+     * 4. SYNCHRONIZED AUDIO CUE SCHEDULER
+     ********************************************************************/
+    const SOUND_CUES = [
+      { t: 0.39, fn: () => sound.playSpringJump(0.95, 0.22) },
+      { t: 0.78, fn: () => sound.playFloorLand(0.85) },
+      { t: 0.89, fn: () => sound.playSpringJump(1.04, 0.22) },
+      { t: 1.24, fn: () => sound.playFloorLand(0.92) },
+      { t: 1.36, fn: () => sound.playSpringJump(1.12, 0.22) },
+      { t: 1.72, fn: () => sound.playFloorLand(1.0) },
+
+      // Phase 2: Curious neck crane & pre-jump crouch wiggle
+      { t: 1.92, fn: () => sound.playServoCreak(1.05, 0.34) },
+      { t: 2.40, fn: () => sound.playServoCreak(0.82, 0.36) },
+
+      // Phase 3: High leap & 4 bounces on the letter 'I'
+      { t: 2.83, fn: () => sound.playSpringJump(1.25, 0.30) },
+      { t: 3.35, fn: () => sound.playLetterBounceSquish(1) },
+      { t: 3.96, fn: () => sound.playLetterBounceSquish(2) },
+      { t: 4.50, fn: () => sound.playLetterBounceSquish(3) },
+      { t: 5.02, fn: () => sound.playFinalFlattenSplat() },
+
+      // Phase 4: Sheepish look, camera turn & GRAPHICS subtitle shimmer
+      { t: 5.68, fn: () => sound.playServoCreak(0.92, 0.28) },
+      { t: 5.85, fn: () => sound.playSubtitleShimmer() },
+      { t: 6.22, fn: () => sound.playServoCreak(1.18, 0.38) },
+
+      // Phase 5: Finale lamp switch click
+      { t: 8.32, fn: () => sound.playFinaleClick() }
+    ];
+
+    /********************************************************************
+     * 5. PARTICLE SYSTEM FOR FLOOR IMPACT DUST RINGS
+     ********************************************************************/
+    const dustParticles = [];
+
+    function spawnFlattenBurst(x, y) {
+      for (let i = 0; i < 26; i++) {
+        const angle = (i / 26) * Math.PI * 2;
+        const speed = 2.2 + Math.random() * 5.5;
+        dustParticles.push({
+          x: x + Math.cos(angle) * 18,
+          y: y - 2,
+          vx: Math.cos(angle) * speed * 1.8,
+          vy: Math.sin(angle) * speed * 0.32 - Math.random() * 2.2,
+          radius: 4 + Math.random() * 7,
+          alpha: 0.65,
+          life: 0,
+          maxLife: 0.45 + Math.random() * 0.35
+        });
+      }
+    }
+
+    function updateAndDrawDust(ctx, dt) {
+      for (let i = dustParticles.length - 1; i >= 0; i--) {
+        const p = dustParticles[i];
+        p.life += dt;
+        if (p.life >= p.maxLife) {
+          dustParticles.splice(i, 1);
+          continue;
+        }
+        p.x += p.vx * dt * 60;
+        p.y += p.vy * dt * 60;
+        p.vx *= 0.94;
+        p.radius += dt * 12;
+
+        const progress = p.life / p.maxLife;
+        const alpha = p.alpha * (1 - progress);
+        ctx.save();
+        ctx.fillStyle = `rgba(215, 230, 248, ${alpha.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.radius * 1.4, p.radius * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    /********************************************************************
+     * 6. ARTICULATED LAMP KINEMATICS & 2.5D RENDERER
+     ********************************************************************/
+    /**
+     * Computes exact joint coordinates of the Luxo Jr. lamp from the current pose parameters
+     */
+    function computeLampRig(state) {
+      const { x, y, baseTilt, crouch, lean, headPitch, headYaw } = state;
+
+      // Base pivot is slightly above the bottom of the circular weighted base
+      const basePivotX = x + Math.sin(baseTilt) * 8;
+      const basePivotY = y - 16;
+
+      // Lower & upper arm lengths
+      const lowerLen = 96;
+      const upperLen = 94;
+
+      // Compute knee/elbow angle and wrist/neck angle from crouch & lean
+      // When crouched (crouch ~ 0.3), the elbow juts out further to the right and arms fold tightly
+      const fold = clamp(1.38 - crouch * 0.85, 0.22, 1.28);
+      const leanAngle = lean * 0.42;
+
+      // Elbow projects backward-upward (to the right when facing left)
+      const lowerAngle = -Math.PI / 2 + fold * 0.78 + leanAngle + baseTilt * 0.6;
+      const elbowX = basePivotX + Math.cos(lowerAngle) * lowerLen;
+      const elbowY = basePivotY + Math.sin(lowerAngle) * lowerLen;
+
+      // Upper arm angles forward-upward from the elbow to the wrist/neck joint
+      const upperAngle = -Math.PI / 2 - fold * 0.74 + leanAngle * 1.15 + baseTilt * 0.4;
+      const wristX = elbowX + Math.cos(upperAngle) * upperLen;
+      const wristY = elbowY + Math.sin(upperAngle) * upperLen;
+
+      // Compute 3D unit direction vector of the lampshade:
+      // yaw = -1 -> pointing left (-X), yaw = 0 -> pointing at camera (+Z), yaw = +1 -> pointing right (+X)
+      const yawRad = headYaw * (Math.PI / 2); // -pi/2 (left) to 0 (camera) to +pi/2 (right)
+      const dirX = Math.sin(yawRad) * Math.cos(headPitch);
+      const dirY = -Math.sin(headPitch);
+      const dirZ = Math.cos(yawRad) * Math.cos(headPitch); // +1 when facing directly at viewer
+
+      // Bulb center inside the flared shade
+      const shadeDepth = 42;
+      const bulbX = wristX + dirX * (shadeDepth * 0.72);
+      const bulbY = wristY + dirY * (shadeDepth * 0.72);
+
+      return {
+        baseX: x,
+        baseY: y,
+        baseTilt,
+        basePivotX,
+        basePivotY,
+        elbowX,
+        elbowY,
+        wristX,
+        wristY,
+        bulbX,
+        bulbY,
+        dirX,
+        dirY,
+        dirZ,
+        headPitch,
+        headYaw,
+        crouch
+      };
+    }
+
+    /**
+     * Renders the studio cyclorama backdrop (classic Pixar soft blue-grey horizon + floor reflection)
+     */
+    function drawStudioBackdrop(ctx, studioLight, rig) {
+      const L = clamp(studioLight, 0, 1);
+
+      // 1. Upper Cyclorama Wall Gradient
+      const wallGrad = ctx.createLinearGradient(0, 0, 0, FLOOR_Y);
+      const rTop = Math.round(lerp(4, 92, L));
+      const gTop = Math.round(lerp(7, 134, L));
+      const bTop = Math.round(lerp(12, 182, L));
+
+      const rMid = Math.round(lerp(7, 148, L));
+      const gMid = Math.round(lerp(11, 185, L));
+      const bMid = Math.round(lerp(18, 224, L));
+
+      const rBot = Math.round(lerp(9, 192, L));
+      const gBot = Math.round(lerp(14, 216, L));
+      const bBot = Math.round(lerp(24, 240, L));
+
+      wallGrad.addColorStop(0.0, `rgb(${rTop}, ${gTop}, ${bTop})`);
+      wallGrad.addColorStop(0.68, `rgb(${rMid}, ${gMid}, ${bMid})`);
+      wallGrad.addColorStop(1.0, `rgb(${rBot}, ${gBot}, ${bBot})`);
+
+      ctx.fillStyle = wallGrad;
+      ctx.fillRect(0, 0, STUDIO_W, FLOOR_Y);
+
+      // Subtle overhead studio vignette
+      const radWall = ctx.createRadialGradient(
+        STUDIO_W * 0.5, FLOOR_Y * 0.55, 80,
+        STUDIO_W * 0.5, FLOOR_Y * 0.55, 920
+      );
+      radWall.addColorStop(0, `rgba(255, 255, 255, ${(0.16 * L).toFixed(3)})`);
+      radWall.addColorStop(1, `rgba(8, 16, 30, ${(0.45 * L + 0.35 * (1 - L)).toFixed(3)})`);
+      ctx.fillStyle = radWall;
+      ctx.fillRect(0, 0, STUDIO_W, FLOOR_Y);
+
+      // 2. Studio Floor Gradient
+      const floorGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, STUDIO_H);
+      const frTop = Math.round(lerp(8, 168, L));
+      const fgTop = Math.round(lerp(12, 194, L));
+      const fbTop = Math.round(lerp(20, 222, L));
+
+      const frBot = Math.round(lerp(4, 88, L));
+      const fgBot = Math.round(lerp(6, 122, L));
+      const fbBot = Math.round(lerp(11, 162, L));
+
+      floorGrad.addColorStop(0.0, `rgb(${frTop}, ${fgTop}, ${fbTop})`);
+      floorGrad.addColorStop(0.18, `rgb(${Math.round(lerp(6, 145, L))}, ${Math.round(lerp(10, 174, L))}, ${Math.round(lerp(18, 206, L))})`);
+      floorGrad.addColorStop(1.0, `rgb(${frBot}, ${fgBot}, ${fbBot})`);
+
+      ctx.fillStyle = floorGrad;
+      ctx.fillRect(0, FLOOR_Y, STUDIO_W, STUDIO_H - FLOOR_Y);
+
+      // Soft cyclorama horizon crease line
+      ctx.fillStyle = `rgba(255, 255, 255, ${(0.18 * L).toFixed(3)})`;
+      ctx.fillRect(0, FLOOR_Y - 1, STUDIO_W, 2);
+
+      // 3. Floor Hotspot from the Lamp's Incandescent Bulb
+      const distToFloor = Math.max(40, FLOOR_Y - rig.bulbY);
+      const beamReachX = rig.bulbX + (rig.dirX / Math.max(0.22, Math.abs(rig.dirY) + 0.35)) * distToFloor * 0.85;
+      const hotspotX = clamp(lerp(rig.bulbX, beamReachX, 0.65), 100, STUDIO_W - 100);
+      const hotspotIntensity = clamp(0.45 - (1 - L) * 0.15 + rig.dirZ * 0.25, 0.18, 0.65);
+
+      const spotGrad = ctx.createRadialGradient(hotspotX, FLOOR_Y + 28, 10, hotspotX, FLOOR_Y + 28, 340);
+      spotGrad.addColorStop(0.0, `rgba(255, 244, 196, ${hotspotIntensity.toFixed(3)})`);
+      spotGrad.addColorStop(0.45, `rgba(255, 220, 135, ${(hotspotIntensity * 0.42).toFixed(3)})`);
+      spotGrad.addColorStop(1.0, 'rgba(255, 210, 120, 0)');
+
+      ctx.save();
+      ctx.translate(hotspotX, FLOOR_Y + 28);
+      ctx.scale(1.65, 0.38);
+      ctx.translate(-hotspotX, -(FLOOR_Y + 28));
+      ctx.fillStyle = spotGrad;
+      ctx.beginPath();
+      ctx.arc(hotspotX, FLOOR_Y + 28, 340, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    /**
+     * Renders the Volumetric Light Cone emitted by the Lampshade before turning fully to camera
+     */
+    function drawVolumetricLightCone(ctx, rig, studioLight) {
+      // As the lamp turns toward the camera (dirZ -> 1), the side cone transitions into a front halo
+      const sideConeFactor = clamp(1.0 - Math.pow(Math.max(0, rig.dirZ), 1.6), 0, 1);
+      if (sideConeFactor <= 0.02) return;
+
+      ctx.save();
+      const coneLen = 680;
+      const spreadAngle = 0.46;
+      const rayAngle = Math.atan2(rig.dirY, rig.dirX);
+
+      const x0 = rig.bulbX;
+      const y0 = rig.bulbY;
+      const x1 = x0 + Math.cos(rayAngle - spreadAngle) * coneLen;
+      const y1 = y0 + Math.sin(rayAngle - spreadAngle) * coneLen;
+      const x2 = x0 + Math.cos(rayAngle + spreadAngle) * coneLen;
+      const y2 = y0 + Math.sin(rayAngle + spreadAngle) * coneLen;
+
+      const grad = ctx.createRadialGradient(x0, y0, 8, x0, y0, coneLen * 0.85);
+      const baseAlpha = (0.34 * sideConeFactor) * (0.7 + 0.3 * studioLight);
+      grad.addColorStop(0.0, `rgba(255, 248, 200, ${(baseAlpha * 1.35).toFixed(3)})`);
+      grad.addColorStop(0.28, `rgba(255, 232, 150, ${(baseAlpha * 0.72).toFixed(3)})`);
+      grad.addColorStop(0.70, `rgba(255, 220, 130, ${(baseAlpha * 0.22).toFixed(3)})`);
+      grad.addColorStop(1.0, 'rgba(255, 220, 130, 0)');
+
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    /**
+     * Renders the Monumental "P   I   X   E   L" letters, dynamic floor shadows, and "G R A P H I C S" subtitle
+     */
+    function drawTypographyAndShadows(ctx, state, rig) {
+      const { iScaleY, studioLight, subtitleAlpha } = state;
+      const L = clamp(studioLight, 0, 1);
+
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'alphabetic';
+
+      // Draw each monumental letter in "P I X E L"
+      LETTERS.forEach(item => {
+        const isI = item.isTarget;
+        const scaleY = isI ? clamp(iScaleY, 0, 1.2) : 1.0;
+        if (isI && scaleY <= 0.008) return; // Completely flattened into floor!
+
+        // Elastic volume-preserving horizontal bulge when 'I' is squashed
+        const scaleX = isI
+          ? clamp(1 / Math.pow(Math.max(0.14, scaleY), 0.52), 0.88, 2.55)
+          : 1.0;
+
+        // Calculate dynamic illumination on this letter from the lamp's bulb
+        const dx = item.x - rig.bulbX;
+        const dy = (FLOOR_Y - LETTER_H * 0.5) - rig.bulbY;
+        const dist = Math.hypot(dx, dy);
+        const proximityGlow = clamp(1 - dist / 520, 0, 1);
+
+        // 1. Dynamic Floor Cast Shadow for the Letter
+        const shadowOffsetX = clamp((item.x - rig.bulbX) * 0.16, -75, 75);
+        const shadowAlpha = clamp((0.36 * L + 0.12 * proximityGlow) * Math.min(1, scaleY * 1.5), 0, 0.48);
+
+        ctx.save();
+        ctx.translate(item.x, FLOOR_Y);
+        ctx.transform(1, 0, shadowOffsetX / 120, -0.26 * scaleY, 0, 0);
+        ctx.scale(scaleX, 1);
+        ctx.font = '700 228px "Cinzel", Georgia, serif';
+        ctx.fillStyle = `rgba(10, 20, 36, ${shadowAlpha.toFixed(3)})`;
+        ctx.fillText(item.char, 0, 0);
+        ctx.restore();
+
+        // Contact Ambient Occlusion ellipse under each letter
+        ctx.save();
+        const aoGrad = ctx.createRadialGradient(item.x, FLOOR_Y + 3, 4, item.x, FLOOR_Y + 3, 68 * scaleX);
+        aoGrad.addColorStop(0, `rgba(6, 12, 22, ${(0.52 * L + 0.15).toFixed(3)})`);
+        aoGrad.addColorStop(1, 'rgba(6, 12, 22, 0)');
+        ctx.fillStyle = aoGrad;
+        ctx.beginPath();
+        ctx.ellipse(item.x, FLOOR_Y + 3, 68 * scaleX, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // 2. Render 3D Extruded / Beveled Letter Body
+        ctx.save();
+        ctx.translate(item.x, FLOOR_Y);
+        ctx.scale(scaleX, scaleY);
+        ctx.font = '700 228px "Cinzel", Georgia, serif';
+
+        // Subtle 3D side extrusion layers (darken in dim finale, warm up near lamp)
+        const sideR = Math.round(lerp(14, 38, L) + proximityGlow * 32);
+        const sideG = Math.round(lerp(18, 48, L) + proximityGlow * 24);
+        const sideB = Math.round(lerp(26, 64, L) + proximityGlow * 10);
+        ctx.fillStyle = `rgb(${sideR}, ${sideG}, ${sideB})`;
+
+        const extrudeDir = item.x < STUDIO_W * 0.5 ? 1 : -1;
+        for (let d = 7; d >= 1; d--) {
+          ctx.fillText(item.char, extrudeDir * d * 0.9, -d * 0.45);
+        }
+
+        // Main Front Face of Letter
+        const faceGrad = ctx.createLinearGradient(0, -LETTER_H, 0, 0);
+        const baseLum = lerp(16, 42, L);
+        const warmAdd = proximityGlow * (45 + 35 * (1 - L));
+        const rTop = Math.round(clamp(baseLum + warmAdd * 1.2, 12, 235));
+        const gTop = Math.round(clamp(baseLum + 6 + warmAdd * 0.95, 14, 220));
+        const bTop = Math.round(clamp(baseLum + 16 + warmAdd * 0.55, 20, 195));
+
+        const rBot = Math.round(clamp(baseLum * 0.55 + warmAdd * 0.5, 8, 160));
+        const gBot = Math.round(clamp(baseLum * 0.65 + warmAdd * 0.4, 10, 150));
+        const bBot = Math.round(clamp(baseLum * 0.85 + warmAdd * 0.25, 16, 140));
+
+        faceGrad.addColorStop(0, `rgb(${rTop}, ${gTop}, ${bTop})`);
+        faceGrad.addColorStop(1, `rgb(${rBot}, ${gBot}, ${bBot})`);
+
+        ctx.fillStyle = faceGrad;
+        ctx.fillText(item.char, 0, 0);
+
+        // Specular Rim Edge Highlight on Letters
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = `rgba(255, 242, 200, ${(0.18 * L + 0.36 * proximityGlow).toFixed(3)})`;
+        ctx.strokeText(item.char, 0, 0);
+
+        ctx.restore();
+      });
+
+      // 3. Render Spaced-Out "G R A P H I C S" Subtitle Underneath
+      if (subtitleAlpha > 0.005) {
+        ctx.save();
+        const alpha = clamp(subtitleAlpha, 0, 1);
+        const subY = FLOOR_Y + 92;
+
+        // Subtle floor reflection under GRAPHICS
+        ctx.font = '600 32px "Montserrat", "Inter", sans-serif';
+        const subtitleChars = 'GRAPHICS'.split('');
+        const charSpacing = 114;
+        const totalWidth = (subtitleChars.length - 1) * charSpacing;
+        const startX = STUDIO_W * 0.5 - totalWidth * 0.5;
+
+        // Calculate brightness in both studio light and dark finale
+        const textBrightness = lerp(195, 32, L); // Dark charcoal on bright studio floor, warm silver-gold in dark finale!
+        const rSub = Math.round(lerp(225, 28, L));
+        const gSub = Math.round(lerp(218, 38, L));
+        const bSub = Math.round(lerp(198, 56, L));
+
+        subtitleChars.forEach((ch, idx) => {
+          const cx = startX + idx * charSpacing;
+          // Soft glow in finale dark mode
+          if (L < 0.5) {
+            ctx.shadowColor = 'rgba(255, 215, 130, 0.55)';
+            ctx.shadowBlur = 14 * (1 - L);
+          }
+          ctx.fillStyle = `rgba(${rSub}, ${gSub}, ${bSub}, ${alpha.toFixed(3)})`;
+          ctx.fillText(ch, cx, subY);
+        });
+
+        // Subtle horizontal framing rules on either side of GRAPHICS
+        const lineAlpha = alpha * (0.28 * L + 0.35 * (1 - L));
+        ctx.strokeStyle = `rgba(${rSub}, ${gSub}, ${bSub}, ${lineAlpha.toFixed(3)})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(310, subY - 11);
+        ctx.lineTo(startX - 55, subY - 11);
+        ctx.moveTo(startX + totalWidth + 55, subY - 11);
+        ctx.lineTo(1290, subY - 11);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    /**
+     * Helper to draw a mechanical parallel-bar lamp arm segment with cross-struts and springs
+     */
+    function drawArticulatedArmSegment(ctx, x1, y1, x2, y2, isLower, dimFactor) {
+      const dx = x2 - x1;
+      const dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      const angle = Math.atan2(dy, dx);
+      const nx = -dy / len;
+      const ny = dx / len;
+      const sep = 6.5; // Half-separation between parallel twin bars
+
+      // Metallic silver-grey shader adjusted for studio light + bulb proximity
+      const metalBright = Math.round(lerp(90, 218, dimFactor));
+      const metalDark = Math.round(lerp(38, 128, dimFactor));
+      const metalStrut = `rgb(${metalDark}, ${metalDark + 6}, ${metalDark + 14})`;
+
+      ctx.save();
+
+      // 1. Exterior Coiled Tension Spring
+      const springSide = isLower ? 1 : -1;
+      const sx1 = x1 + dx * 0.16 + nx * (sep + 7) * springSide;
+      const sy1 = y1 + dy * 0.16 + ny * (sep + 7) * springSide;
+      const sx2 = x1 + dx * 0.82 + nx * (sep + 7) * springSide;
+      const sy2 = y1 + dy * 0.82 + ny * (sep + 7) * springSide;
+
+      ctx.strokeStyle = `rgb(${Math.round(metalDark * 0.85)}, ${Math.round(metalDark * 0.9)}, ${metalDark})`;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(x1 + dx * 0.16, y1 + dy * 0.16);
+      ctx.lineTo(sx1, sy1);
+      const coils = 11;
+      for (let i = 0; i <= coils; i++) {
+        const t = i / coils;
+        const zig = (i % 2 === 0 ? -1 : 1) * 3.5;
+        const px = lerp(sx1, sx2, t) + nx * zig;
+        const py = lerp(sy1, sy2, t) + ny * zig;
+        ctx.lineTo(px, py);
+      }
+      ctx.lineTo(x1 + dx * 0.82, y1 + dy * 0.82);
+      ctx.stroke();
+
+      // 2. Internal Cross-Braces between twin bars
+      ctx.strokeStyle = metalStrut;
+      ctx.lineWidth = 3;
+      [0.32, 0.68].forEach(t => {
+        const cx = x1 + dx * t;
+        const cy = y1 + dy * t;
+        ctx.beginPath();
+        ctx.moveTo(cx - nx * sep, cy - ny * sep);
+        ctx.lineTo(cx + nx * sep, cy + ny * sep);
+        ctx.stroke();
+      });
+
+      // 3. Twin Parallel Metallic Bars
+      [-sep, sep].forEach(offset => {
+        ctx.save();
+        ctx.translate(x1 + nx * offset, y1 + ny * offset);
+        ctx.rotate(angle);
+
+        const barGrad = ctx.createLinearGradient(0, -3.5, 0, 3.5);
+        barGrad.addColorStop(0, `rgb(${metalBright}, ${metalBright + 4}, ${metalBright + 10})`);
+        barGrad.addColorStop(0.5, `rgb(${metalDark + 35}, ${metalDark + 40}, ${metalDark + 48})`);
+        barGrad.addColorStop(1, `rgb(${metalDark - 10}, ${metalDark - 5}, ${metalDark})`);
+
+        ctx.fillStyle = barGrad;
+        ctx.beginPath();
+        ctx.roundRect(0, -3.2, len, 6.4, 3);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+
+    /**
+     * Renders the Articulated Luxo Jr. Lamp (Base, Arms, Springs, 3D Rotating Shade, Glowing Bulb & Lens Flare)
+     */
+    function drawLuxoLamp(ctx, rig, studioLight) {
+      const L = clamp(studioLight, 0, 1);
+      // Even when studioLight dims to 0 in Phase 5, the lamp stays partially rim-lit by its own warm bulb!
+      const selfLit = clamp(L * 0.85 + 0.25, 0.25, 1.0);
+
+      // 1. Dynamic Floor Shadow under the Lamp Base
+      const heightOffFloor = Math.max(0, FLOOR_Y - rig.baseY);
+      const shadowScale = clamp(1 - heightOffFloor / 460, 0.35, 1.05);
+      const shadowAlpha = clamp((0.58 * L + 0.22) * shadowScale, 0.12, 0.68);
+
+      ctx.save();
+      const baseShadowGrad = ctx.createRadialGradient(
+        rig.baseX, FLOOR_Y + 4, 6,
+        rig.baseX, FLOOR_Y + 4, 72 * shadowScale
+      );
+      baseShadowGrad.addColorStop(0, `rgba(5, 10, 18, ${shadowAlpha.toFixed(3)})`);
+      baseShadowGrad.addColorStop(0.65, `rgba(8, 16, 28, ${(shadowAlpha * 0.45).toFixed(3)})`);
+      baseShadowGrad.addColorStop(1, 'rgba(8, 16, 28, 0)');
+      ctx.fillStyle = baseShadowGrad;
+      ctx.beginPath();
+      ctx.ellipse(rig.baseX, FLOOR_Y + 4, 72 * shadowScale, 15 * shadowScale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 2. Circular Weighted Base (with dynamic pitch tilt & metallic dome shading)
+      ctx.save();
+      ctx.translate(rig.baseX, rig.baseY - 6);
+      ctx.rotate(rig.baseTilt);
+
+      // Dark rubber underside pad
+      ctx.fillStyle = '#141923';
+      ctx.beginPath();
+      ctx.ellipse(0, 3, 52, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Weighted metallic dome body
+      const domeGrad = ctx.createLinearGradient(-52, -14, 52, 8);
+      const bHigh = Math.round(lerp(95, 228, selfLit));
+      const bMid = Math.round(lerp(55, 162, selfLit));
+      const bLow = Math.round(lerp(28, 86, selfLit));
+      domeGrad.addColorStop(0.0, `rgb(${bHigh}, ${bHigh + 3}, ${bHigh + 8})`);
+      domeGrad.addColorStop(0.45, `rgb(${bMid}, ${bMid + 6}, ${bMid + 14})`);
+      domeGrad.addColorStop(1.0, `rgb(${bLow}, ${bLow + 4}, ${bLow + 10})`);
+
+      ctx.fillStyle = domeGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, -1, 52, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner stepped collar on base
+      ctx.fillStyle = `rgb(${bMid - 15}, ${bMid - 10}, ${bMid})`;
+      ctx.beginPath();
+      ctx.ellipse(0, -6, 28, 6.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Center vertical stem turret
+      ctx.fillStyle = `rgb(${bLow}, ${bLow + 5}, ${bLow + 10})`;
+      ctx.beginPath();
+      ctx.roundRect(-7, -18, 14, 14, 4);
+      ctx.fill();
+      ctx.restore();
+
+      // 3. Lower & Upper Articulated Arm Assemblies
+      drawArticulatedArmSegment(ctx, rig.basePivotX, rig.basePivotY, rig.elbowX, rig.elbowY, true, selfLit);
+      drawArticulatedArmSegment(ctx, rig.elbowX, rig.elbowY, rig.wristX, rig.wristY, false, selfLit);
+
+      // 4. Mechanical Joint Plates & Rivets (Base Pivot, Elbow Joint, Wrist Joint)
+      [
+        { x: rig.basePivotX, y: rig.basePivotY, r: 7.5 },
+        { x: rig.elbowX, y: rig.elbowY, r: 9.0 },
+        { x: rig.wristX, y: rig.wristY, r: 7.5 }
+      ].forEach(joint => {
+        ctx.save();
+        ctx.fillStyle = `rgb(${Math.round(lerp(45, 115, selfLit))}, ${Math.round(lerp(52, 125, selfLit))}, ${Math.round(lerp(64, 138, selfLit))})`;
+        ctx.beginPath();
+        ctx.arc(joint.x, joint.y, joint.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Inner chrome bolt
+        ctx.fillStyle = `rgb(${Math.round(lerp(130, 240, selfLit))}, ${Math.round(lerp(135, 242, selfLit))}, ${Math.round(lerp(145, 248, selfLit))})`;
+        ctx.beginPath();
+        ctx.arc(joint.x, joint.y, joint.r * 0.44, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 5. 3D-Projected Flared Metallic Lampshade & Incandescent Bulb
+      // As the head rotates from side view (dirZ = 0) to camera view (dirZ = 1),
+      // we project the back cap, cone body, front flared rim, and interior glowing bulb in 3D!
+      const nx = rig.dirX;
+      const ny = rig.dirY;
+      const nz = rig.dirZ; // 0 = profile, 1 = directly facing viewer
+
+      // Axis along the lampshade in 2D screen space
+      const projLen = Math.hypot(nx, ny);
+      const axisAngle = projLen > 0.001 ? Math.atan2(ny, nx) : Math.PI / 2;
+
+      // Key points along the shade axis from back cap to front opening
+      const backCenter = {
+        x: rig.wristX - nx * 14,
+        y: rig.wristY - ny * 14
+      };
+      const neckCenter = {
+        x: rig.wristX + nx * 4,
+        y: rig.wristY + ny * 4
+      };
+      const frontCenter = {
+        x: rig.wristX + nx * 48,
+        y: rig.wristY + ny * 48
+      };
+
+      const backRadius = 15;
+      const neckRadius = 21;
+      const frontRadius = 52;
+      // Minor axis of the front circular opening ellipse (widens to a full circle when nz -> 1)
+      const frontMinor = Math.max(11, frontRadius * clamp(Math.abs(nz) * 0.92 + 0.22, 0.22, 1.0));
+
+      ctx.save();
+
+      // 5A. Outer Metallic Lampshade Body (Cone + Vented Rear Housing)
+      const shadeHigh = Math.round(lerp(120, 242, selfLit));
+      const shadeMid = Math.round(lerp(75, 182, selfLit));
+      const shadeDark = Math.round(lerp(35, 102, selfLit));
+
+      // Perpendicular unit vector in screen plane
+      const px = projLen > 0.001 ? -ny / projLen : 1;
+      const py = projLen > 0.001 ? nx / projLen : 0;
+
+      // Rear vented cap dome
+      ctx.fillStyle = `rgb(${shadeDark}, ${shadeDark + 6}, ${shadeDark + 14})`;
+      ctx.beginPath();
+      ctx.arc(backCenter.x, backCenter.y, backRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Main flared cone hull connecting neckCenter to frontCenter
+      const coneGrad = ctx.createLinearGradient(
+        neckCenter.x - px * frontRadius, neckCenter.y - py * frontRadius,
+        frontCenter.x + px * frontRadius, frontCenter.y + py * frontRadius
+      );
+      coneGrad.addColorStop(0.0, `rgb(${shadeHigh}, ${shadeHigh + 3}, ${shadeHigh + 8})`);
+      coneGrad.addColorStop(0.5, `rgb(${shadeMid}, ${shadeMid + 6}, ${shadeMid + 14})`);
+      coneGrad.addColorStop(1.0, `rgb(${shadeDark}, ${shadeDark + 4}, ${shadeDark + 10})`);
+
+      ctx.fillStyle = coneGrad;
+      ctx.beginPath();
+      ctx.moveTo(neckCenter.x + px * neckRadius, neckCenter.y + py * neckRadius);
+      ctx.lineTo(frontCenter.x + px * frontRadius, frontCenter.y + py * frontRadius);
+      ctx.lineTo(frontCenter.x - px * frontRadius, frontCenter.y - py * frontRadius);
+      ctx.lineTo(neckCenter.x - px * neckRadius, neckCenter.y - py * neckRadius);
+      ctx.closePath();
+      ctx.fill();
+
+      // Rounded collar cap over neckCenter
+      ctx.fillStyle = coneGrad;
+      ctx.beginPath();
+      ctx.arc(neckCenter.x, neckCenter.y, neckRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 5B. Warm Glowing Interior Cavity of the Lampshade
+      ctx.save();
+      ctx.translate(frontCenter.x, frontCenter.y);
+      ctx.rotate(axisAngle);
+
+      // Outer rolled metallic lip of the shade opening
+      ctx.fillStyle = `rgb(${shadeHigh}, ${shadeHigh}, ${shadeHigh + 5})`;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, frontMinor + 2.5, frontRadius + 2.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Warm golden-white reflector cavity inside the shade
+      const innerGrad = ctx.createRadialGradient(
+        -frontMinor * 0.18 * (1 - nz), 0, 4,
+        0, 0, frontRadius
+      );
+      innerGrad.addColorStop(0.0, '#ffffff');
+      innerGrad.addColorStop(0.38, '#fff7cc');
+      innerGrad.addColorStop(0.75, '#fbbf24');
+      innerGrad.addColorStop(1.0, '#b45309');
+
+      ctx.fillStyle = innerGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, frontMinor, frontRadius, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 5C. Glowing Incandescent Bulb & Volumetric Camera Lens Flare
+      const bulbScreenX = lerp(neckCenter.x, frontCenter.x, 0.72);
+      const bulbScreenY = lerp(neckCenter.y, frontCenter.y, 0.72);
+      const bulbRadius = lerp(14, 21, clamp(nz, 0, 1));
+
+      // Bulb core
+      const bulbGrad = ctx.createRadialGradient(
+        bulbScreenX, bulbScreenY, 2,
+        bulbScreenX, bulbScreenY, bulbRadius * 2.2
+      );
+      bulbGrad.addColorStop(0.0, 'rgba(255, 255, 255, 1)');
+      bulbGrad.addColorStop(0.42, 'rgba(255, 248, 195, 0.95)');
+      bulbGrad.addColorStop(0.75, 'rgba(251, 191, 36, 0.45)');
+      bulbGrad.addColorStop(1.0, 'rgba(251, 191, 36, 0)');
+
+      ctx.fillStyle = bulbGrad;
+      ctx.beginPath();
+      ctx.arc(bulbScreenX, bulbScreenY, bulbRadius * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Volumetric Bloom & Anamorphic Lens Streak when lamp faces the viewer (Phase 4 & 5!)
+      const cameraFacing = clamp(nz, 0, 1);
+      if (cameraFacing > 0.05) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+
+        // Large warm halo around the shade
+        const haloRadius = 210 + cameraFacing * 170;
+        const haloGrad = ctx.createRadialGradient(
+          frontCenter.x, frontCenter.y, 6,
+          frontCenter.x, frontCenter.y, haloRadius
+        );
+        const haloAlpha = 0.48 * cameraFacing;
+        haloGrad.addColorStop(0.0, `rgba(255, 255, 240, ${(haloAlpha * 1.4).toFixed(3)})`);
+        haloGrad.addColorStop(0.22, `rgba(255, 235, 155, ${(haloAlpha * 0.85).toFixed(3)})`);
+        haloGrad.addColorStop(0.55, `rgba(245, 158, 11, ${(haloAlpha * 0.28).toFixed(3)})`);
+        haloGrad.addColorStop(1.0, 'rgba(245, 158, 11, 0)');
+
+        ctx.fillStyle = haloGrad;
+        ctx.beginPath();
+        ctx.arc(frontCenter.x, frontCenter.y, haloRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Subtle horizontal cinematic anamorphic lens flare streak
+        const streakW = 340 * cameraFacing;
+        const streakH = 12 * cameraFacing;
+        const streakGrad = ctx.createLinearGradient(
+          frontCenter.x - streakW, frontCenter.y,
+          frontCenter.x + streakW, frontCenter.y
+        );
+        streakGrad.addColorStop(0.0, 'rgba(255, 240, 180, 0)');
+        streakGrad.addColorStop(0.5, `rgba(255, 250, 220, ${(0.52 * cameraFacing).toFixed(3)})`);
+        streakGrad.addColorStop(1.0, 'rgba(255, 240, 180, 0)');
+
+        ctx.fillStyle = streakGrad;
+        ctx.beginPath();
+        ctx.ellipse(frontCenter.x, frontCenter.y, streakW, streakH, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      ctx.restore();
+    }
+
+    /********************************************************************
+     * 7. ANIMATION CONTROLLER, INTERACTIVE SCRUBBER & MANUAL JUMP
+     ********************************************************************/
+    const canvas = document.getElementById('stageCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const TOTAL_DURATION = 8.60;
+    let currentTime = 0.0;
+    let prevTime = -0.01;
+    let isPlaying = true;
+    let playbackSpeed = 1.0;
+    let keepStudioLightsOn = false;
+    let lastRafTimestamp = performance.now();
+    let flattenDustTriggered = false;
+
+    // Interactive post-intro "Manual Jump" & Mouse Look state
+    let manualJumpActive = false;
+    let manualJumpTimer = 0;
+    let mouseTarget = { x: STUDIO_W * 0.5, y: STUDIO_H * 0.5, active: false };
+
+    // UI Elements
+    const timelineScrubber = document.getElementById('timelineScrubber');
+    const timelineFill = document.getElementById('timelineFill');
+    const timeCurrentEl = document.getElementById('timeCurrent');
+    const phaseLabelEl = document.getElementById('phaseLabel');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseText = document.getElementById('playPauseText');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const replaySoundBtn = document.getElementById('replaySoundBtn');
+    const audioUnlockBanner = document.getElementById('audioUnlockBanner');
+    const manualJumpBtn = document.getElementById('manualJumpBtn');
+    const keepLightsBtn = document.getElementById('keepLightsBtn');
+    const keepLightsLabel = document.getElementById('keepLightsLabel');
+    const muteBtn = document.getElementById('muteBtn');
+    const iconUnmuted = document.getElementById('iconUnmuted');
+    const iconMuted = document.getElementById('iconMuted');
+    const statusPing = document.getElementById('statusPing');
+
+    function resizeCanvas() {
+      const container = document.getElementById('canvasContainer');
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = container.clientWidth * dpr;
+      canvas.height = container.clientHeight * dpr;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function getPhaseDescription(t) {
+      if (t < 1.82) return 'PHASE 1: HOP IN';
+      if (t < 2.82) return "PHASE 2: INSPECT 'I'";
+      if (t < 5.22) return "PHASE 3: STOMP & SQUASH 'I'";
+      if (t < 7.45) return 'PHASE 4: CAMERA TURN & LOCKUP';
+      return 'PHASE 5: ICONIC FINALE';
+    }
+
+    function updatePlayPauseUI() {
+      if (isPlaying) {
+        playPauseText.textContent = 'Pause';
+        statusPing.classList.remove('hidden');
+        playPauseIcon.innerHTML =
+          '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />';
+      } else {
+        playPauseText.textContent = currentTime >= TOTAL_DURATION - 0.02 ? 'Replay' : 'Play';
+        statusPing.classList.add('hidden');
+        playPauseIcon.innerHTML =
+          '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />';
+      }
+    }
+
+    /**
+     * Triggers an interactive manual jump with spring & floor sound effects!
+     */
+    function triggerManualJump() {
+      sound.initAndUnlock();
+      audioUnlockBanner.classList.add('hidden');
+
+      // If we are still in the middle of the intro, jump straight to the completed lockup pose so the lamp can jump in place
+      if (currentTime < 6.7) {
+        currentTime = 7.2;
+        prevTime = 7.2;
+      }
+      manualJumpActive = true;
+      manualJumpTimer = 0;
+      sound.playSpringJump(1.12, 0.25);
+    }
+
+    /**
+     * Evaluates the full state of the scene at timestamp `t`, plus any active interactive overrides
+     */
+    function evaluateSceneState(t, dt) {
+      const state = {
+        x: sampleTrack(TRACKS.x, t),
+        y: sampleTrack(TRACKS.y, t),
+        iScaleY: sampleTrack(TRACKS.iScaleY, t),
+        baseTilt: sampleTrack(TRACKS.baseTilt, t),
+        crouch: sampleTrack(TRACKS.crouch, t),
+        lean: sampleTrack(TRACKS.lean, t),
+        headPitch: sampleTrack(TRACKS.headPitch, t),
+        headYaw: sampleTrack(TRACKS.headYaw, t),
+        studioLight: keepStudioLightsOn
+          ? Math.max(0.92, sampleTrack(TRACKS.studioLight, t))
+          : sampleTrack(TRACKS.studioLight, t),
+        subtitleAlpha: sampleTrack(TRACKS.subtitleAlpha, t)
+      };
+
+      // Interactive Manual Jump Easter Egg overlay
+      if (manualJumpActive) {
+        manualJumpTimer += dt;
+        const jumpDur = 0.68;
+        if (manualJumpTimer < jumpDur) {
+          const p = manualJumpTimer / jumpDur;
+          if (p < 0.18) {
+            // Quick crouch anticipation
+            const cp = p / 0.18;
+            state.crouch = lerp(0.98, 0.36, Easing.easeOutQuad(cp));
+          } else if (p < 0.76) {
+            // Airborne arc
+            const ap = (p - 0.18) / 0.58;
+            const arc = Math.sin(ap * Math.PI);
+            state.y = FLOOR_Y - arc * 165;
+            state.crouch = lerp(0.45, 1.32, arc);
+            state.baseTilt = Math.cos(ap * Math.PI) * 0.22;
+            state.headPitch = -0.15 + Math.sin(ap * Math.PI) * 0.25;
+          } else {
+            // Landing squash & settle
+            const lp = (p - 0.76) / 0.24;
+            if (manualJumpTimer - dt < jumpDur * 0.76) {
+              sound.playFloorLand(1.0);
+              spawnFlattenBurst(state.x, FLOOR_Y);
+            }
+            state.y = FLOOR_Y;
+            state.crouch = lerp(0.42, 0.98, Easing.easeOutBack(lp));
+            state.baseTilt = 0;
+          }
+        } else {
+          manualJumpActive = false;
+        }
+      }
+
+      // Interactive Mouse Aiming once the intro has reached the final lockup
+      if (t >= 6.8 && mouseTarget.active && !manualJumpActive) {
+        const dx = (mouseTarget.x - state.x) / 550;
+        const dy = (mouseTarget.y - (FLOOR_Y - 150)) / 400;
+        state.headYaw = clamp(dx * 0.65, -0.75, 0.75);
+        state.headPitch = clamp(-dy * 0.55, -0.65, 0.55);
+      }
+
+      return state;
+    }
+
+    /**
+     * Main 60fps Animation & Render Loop
+     */
+    function animateLoop(now) {
+      const rawDt = Math.min(0.05, (now - lastRafTimestamp) / 1000);
+      lastRafTimestamp = now;
+      const dt = rawDt * playbackSpeed;
+
+      if (isPlaying) {
+        prevTime = currentTime;
+        currentTime = Math.min(TOTAL_DURATION, currentTime + dt);
+
+        // Trigger synchronized procedural sound cues
+        SOUND_CUES.forEach(cue => {
+          if (prevTime < cue.t && currentTime >= cue.t) {
+            cue.fn();
+          }
+        });
+
+        // Trigger floor dust burst on the final 4th stomp when 'I' flattens
+        if (!flattenDustTriggered && prevTime < 5.06 && currentTime >= 5.06) {
+          flattenDustTriggered = true;
+          spawnFlattenBurst(TARGET_I_X, FLOOR_Y);
+        }
+
+        // Update timeline UI
+        timelineScrubber.value = currentTime.toFixed(2);
+        timelineFill.style.width = `${(currentTime / TOTAL_DURATION) * 100}%`;
+        timeCurrentEl.textContent = `${currentTime.toFixed(2)}s`;
+        phaseLabelEl.textContent = getPhaseDescription(currentTime);
+
+        if (currentTime >= TOTAL_DURATION) {
+          isPlaying = false;
+          updatePlayPauseUI();
+        }
+      }
+
+      // Evaluate pose & kinematics
+      const state = evaluateSceneState(currentTime, rawDt);
+      const rig = computeLampRig(state);
+
+      // Update continuous 60Hz filament hum level based on camera yaw
+      sound.updateBulbHumLevel( isPlaying || manualJumpActive ? (0.4 + Math.max(0, rig.dirZ) * 0.6) : 0.15 );
+
+      // Render Scene with Aspect-Preserving Letterbox/Cover Transform
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const scaleX = canvas.width / STUDIO_W;
+      const scaleY = canvas.height / STUDIO_H;
+      const scale = Math.max(scaleX, scaleY);
+      const offsetX = (canvas.width - STUDIO_W * scale) * 0.5;
+      const offsetY = (canvas.height - STUDIO_H * scale) * 0.5;
+
+      ctx.translate(offsetX, offsetY);
+      ctx.scale(scale, scale);
+
+      // 1. Studio Cyclorama Backdrop & Floor Hotspot
+      drawStudioBackdrop(ctx, state.studioLight, rig);
+
+      // 2. Volumetric Spotlight Cone (behind/around letters)
+      drawVolumetricLightCone(ctx, rig, state.studioLight);
+
+      // 3. Monumental "P I X E L" Typography, Dynamic Shadows & "G R A P H I C S"
+      drawTypographyAndShadows(ctx, state, rig);
+
+      // 4. Floor Impact Dust Particles
+      updateAndDrawDust(ctx, rawDt);
+
+      // 5. Articulated Luxo Jr. Lamp & Glowing Incandescent Bulb
+      drawLuxoLamp(ctx, rig, state.studioLight);
+
+      ctx.restore();
+
+      requestAnimationFrame(animateLoop);
+    }
+
+    /********************************************************************
+     * 8. EVENT LISTENERS & AUTOPLAY HANDLING
+     ********************************************************************/
+    function restartIntroWithSound() {
+      sound.initAndUnlock();
+      audioUnlockBanner.classList.add('hidden');
+      currentTime = 0.0;
+      prevTime = -0.01;
+      flattenDustTriggered = false;
+      manualJumpActive = false;
+      isPlaying = true;
+      updatePlayPauseUI();
+    }
+
+    replaySoundBtn.addEventListener('click', restartIntroWithSound);
+    audioUnlockBanner.addEventListener('click', restartIntroWithSound);
+
+    playPauseBtn.addEventListener('click', () => {
+      sound.initAndUnlock();
+      audioUnlockBanner.classList.add('hidden');
+      if (currentTime >= TOTAL_DURATION - 0.02) {
+        restartIntroWithSound();
+      } else {
+        isPlaying = !isPlaying;
+        updatePlayPauseUI();
+      }
+    });
+
+    manualJumpBtn.addEventListener('click', triggerManualJump);
+
+    // Timeline Scrubber interaction
+    timelineScrubber.addEventListener('input', e => {
+      sound.initAndUnlock();
+      currentTime = parseFloat(e.target.value);
+      prevTime = currentTime;
+      flattenDustTriggered = currentTime >= 5.06;
+      timelineFill.style.width = `${(currentTime / TOTAL_DURATION) * 100}%`;
+      timeCurrentEl.textContent = `${currentTime.toFixed(2)}s`;
+      phaseLabelEl.textContent = getPhaseDescription(currentTime);
+    });
+
+    // Quick Phase Jump buttons
+    document.querySelectorAll('.phase-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sound.initAndUnlock();
+        audioUnlockBanner.classList.add('hidden');
+        const targetT = parseFloat(btn.getAttribute('data-jump'));
+        currentTime = targetT;
+        prevTime = targetT - 0.01;
+        flattenDustTriggered = currentTime >= 5.06;
+        isPlaying = true;
+        updatePlayPauseUI();
+      });
+    });
+
+    // Playback Speed buttons
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        playbackSpeed = parseFloat(btn.getAttribute('data-speed'));
+        document.querySelectorAll('.speed-btn').forEach(b => {
+          b.classList.remove('bg-white/15', 'text-white', 'font-semibold');
+          b.classList.add('text-slate-400');
+        });
+        btn.classList.add('bg-white/15', 'text-white', 'font-semibold');
+        btn.classList.remove('text-slate-400');
+      });
+    });
+
+    // Keep Studio Lights On Toggle
+    keepLightsBtn.addEventListener('click', () => {
+      keepStudioLightsOn = !keepStudioLightsOn;
+      keepLightsLabel.textContent = keepStudioLightsOn
+        ? '💡 Studio Lights Locked On'
+        : '🎬 Classic Dim Finale';
+    });
+
+    // Mute / Unmute Toggle
+    muteBtn.addEventListener('click', () => {
+      sound.initAndUnlock();
+      sound.setMuted(!sound.isMuted);
+      iconUnmuted.classList.toggle('hidden', sound.isMuted);
+      iconMuted.classList.toggle('hidden', !sound.isMuted);
+    });
+
+    // Keyboard shortcuts (Spacebar = Manual Jump or Play/Unlock)
+    window.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        triggerManualJump();
+      }
+    });
+
+    // Mouse / Touch tracking on canvas for interactive aiming at the end of the intro
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width;
+      const ny = (e.clientY - rect.top) / rect.height;
+      mouseTarget.x = nx * STUDIO_W;
+      mouseTarget.y = ny * STUDIO_H;
+      mouseTarget.active = true;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      mouseTarget.active = false;
+    });
+
+    // Click on stage unlocks audio or triggers manual jump if finished
+    canvas.addEventListener('pointerdown', () => {
+      const wasUnlocked = sound.isUnlocked;
+      sound.initAndUnlock();
+      audioUnlockBanner.classList.add('hidden');
+      if (currentTime >= 6.8 && wasUnlocked) {
+        triggerManualJump();
+      }
+    });
+
+    // Initialize on Window Load
+    window.onload = () => {
+      resizeCanvas();
+      // Attempt immediate Web Audio API unlock; if browser requires gesture, show subtle top-right pill
+      const unlockedImmediately = sound.initAndUnlock();
+      if (!unlockedImmediately) {
+        audioUnlockBanner.classList.remove('hidden');
+      }
+      lastRafTimestamp = performance.now();
+      requestAnimationFrame(animateLoop);
+    };
+  </script>
+</body>
+</html>
